@@ -39,7 +39,9 @@ const Stack = createStackNavigator<RootStackParamList>();
 function RootNavigator() {
   return (
     <Stack.Navigator
+    
       screenOptions={{
+        
         headerStyle: {
           backgroundColor: Colors.light.tint,
           shadowOpacity: 0,
@@ -53,6 +55,7 @@ function RootNavigator() {
       }}
     >
       <Stack.Screen
+      
         name="Root"
         component={MainTabNavigator}
         options={{
