@@ -2,8 +2,9 @@ import React from "react";
 import { View, Text, Image, TouchableWithoutFeedback } from "react-native";
 import { User } from "../../types";
 import styles from "./style";
-import moment from "moment";
 import { useNavigation } from "@react-navigation/native";
+import { API, Auth, graphqlOperation } from "aws-amplify";
+import { createChatRoom, createChatRoomUser } from "../../graphql/mutations";
 
 export type ContactListItemProps = {
   user: User;
@@ -14,8 +15,60 @@ const ContactListItem = (props: ContactListItemProps) => {
 
   const navigation = useNavigation();
 
-  const onClick = () => {
+  const onClick = async () => {
     //navigate to chatroom with this user
+    try {
+      //create a new chat room
+      const newChatRoomData = await API.graphql(
+        graphqlOperation(
+          createChatRoom, {
+            input: {
+              lastMessageID: "zz753fca-e8c3-473b-8e85-b14196e84e16"
+            }
+          }
+        )
+      )
+
+      if (!newChatRoomData.data) {
+        console.log(" Failed to create a chat room");
+        return;
+      }
+
+      const newChatRoom = newChatRoomData.data.createChatRoom;
+
+      // 2. Add `user` to the Chat Room
+      await API.graphql(
+        graphqlOperation(
+          createChatRoomUser, {
+            input: {
+              userID: user.id,
+              chatRoomID: newChatRoom.id,
+            }
+          }
+        )
+      )
+
+      //  3. Add authenticated user to the Chat Room
+      const userInfo = await Auth.currentAuthenticatedUser();
+      await API.graphql(
+        graphqlOperation(
+          createChatRoomUser, {
+            input: {
+              userID: userInfo.attributes.sub,
+              chatRoomID: newChatRoom.id,
+            }
+          }
+        )
+      )
+
+      navigation.navigate('ChatRoom', {
+        id: newChatRoom.id,
+        name: "Hardcoded name",
+      })
+
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (
@@ -26,11 +79,7 @@ const ContactListItem = (props: ContactListItemProps) => {
         </View>
         <View style={styles.midContainer}>
           <Text style={styles.username}>{user.name}</Text>
-          <Text
-            style={styles.status}
-            numberOfLines={1}
-            ellipsizeMode={"tail"}
-          >
+          <Text style={styles.status} numberOfLines={1} ellipsizeMode={"tail"}>
             {user.status}
           </Text>
         </View>
