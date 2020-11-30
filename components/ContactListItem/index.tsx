@@ -16,18 +16,15 @@ const ContactListItem = (props: ContactListItemProps) => {
   const navigation = useNavigation();
 
   const onClick = async () => {
-    //navigate to chatroom with this user
     try {
-      //create a new chat room
+      //  1. Create a new Chat Room
       const newChatRoomData = await API.graphql(
-        graphqlOperation(
-          createChatRoom, {
-            input: {
-              lastMessageID: "zz753fca-e8c3-473b-8e85-b14196e84e16"
-            }
-          }
-        )
-      )
+        graphqlOperation(createChatRoom, {
+          input: {
+            lastMessageID: "zz753fca-e8c3-473b-8e85-b14196e84e16",
+          },
+        })
+      );
 
       if (!newChatRoomData.data) {
         console.log(" Failed to create a chat room");
@@ -38,34 +35,29 @@ const ContactListItem = (props: ContactListItemProps) => {
 
       // 2. Add `user` to the Chat Room
       await API.graphql(
-        graphqlOperation(
-          createChatRoomUser, {
-            input: {
-              userID: user.id,
-              chatRoomID: newChatRoom.id,
-            }
-          }
-        )
-      )
+        graphqlOperation(createChatRoomUser, {
+          input: {
+            userID: user.id,
+            chatRoomID: newChatRoom.id,
+          },
+        })
+      );
 
       //  3. Add authenticated user to the Chat Room
       const userInfo = await Auth.currentAuthenticatedUser();
       await API.graphql(
-        graphqlOperation(
-          createChatRoomUser, {
-            input: {
-              userID: userInfo.attributes.sub,
-              chatRoomID: newChatRoom.id,
-            }
-          }
-        )
-      )
+        graphqlOperation(createChatRoomUser, {
+          input: {
+            userID: userInfo.attributes.sub,
+            chatRoomID: newChatRoom.id,
+          },
+        })
+      );
 
-      navigation.navigate('ChatRoom', {
+      navigation.navigate("ChatRoom", {
         id: newChatRoom.id,
         name: "Hardcoded name",
-      })
-
+      });
     } catch (e) {
       console.log(e);
     }
@@ -74,14 +66,15 @@ const ContactListItem = (props: ContactListItemProps) => {
   return (
     <TouchableWithoutFeedback onPress={onClick}>
       <View style={styles.container}>
-        <View style={styles.leftContainer}>
-          <Image source={{ uri: user.imageUri }} style={styles.avatar}></Image>
-        </View>
-        <View style={styles.midContainer}>
-          <Text style={styles.username}>{user.name}</Text>
-          <Text style={styles.status} numberOfLines={1} ellipsizeMode={"tail"}>
-            {user.status}
-          </Text>
+        <View style={styles.lefContainer}>
+          <Image source={{ uri: user.imageUri }} style={styles.avatar} />
+
+          <View style={styles.midContainer}>
+            <Text style={styles.username}>{user.name}</Text>
+            <Text numberOfLines={2} style={styles.status}>
+              {user.status}
+            </Text>
+          </View>
         </View>
       </View>
     </TouchableWithoutFeedback>
